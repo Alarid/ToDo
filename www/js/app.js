@@ -41,6 +41,16 @@ angular.module('todo', ['ionic'])
     $scope.selectProject(newProject, $scope.projects.length-1);
   }
 
+  // Edit project
+  var editProject = function(project, newTitle) {
+    for (var i=0, len=$scope.projects.length; i<len; i+=1) {
+      if ($scope.projects[i] == project) {
+        $scope.projects[i].title = newTitle;
+      }
+    }
+    Projects.save($scope.projects);
+  }
+
   // Load or initialize projects
   $scope.projects = Projects.all();
 
@@ -49,7 +59,7 @@ angular.module('todo', ['ionic'])
 
   // called to create a new project
   $scope.newProject = function() {
-    var projectTitle = prompt('Project name');
+    var projectTitle = prompt('Nom du projet :');
     if (projectTitle) {
       createProject(projectTitle);
     }
@@ -102,14 +112,17 @@ angular.module('todo', ['ionic'])
   $scope.onHold = function(project) {
     var hideSheet = $ionicActionSheet.show({
       buttons: [
-        { text: 'Edit' },
-        { text: 'Delete' }
+        { text: 'Modifier' },
+        { text: 'Supprimer' }
       ],
-      titleText: 'Choose an action for this project :',
+      titleText: 'Que voulez vous faire de ' + project.title + ' ?',
       buttonClicked: function(index) {
         // Edit
         if (index == 0) {
-          // TODO 
+          var projectTitle = prompt('Nouveau nom du projet :');
+          if (projectTitle) {
+            editProject(project, projectTitle);
+          }
         }
         else if (index == 1) {
           // TODO
@@ -122,7 +135,7 @@ angular.module('todo', ['ionic'])
   $timeout(function() {
     if ($scope.projects.length == 0) {
       while(true) {
-        var projectTitle = prompt('Your first project title:');
+        var projectTitle = prompt('Bienvenue ! Choisissez un nom pour votre premier projet :');
         if (projectTitle) {
           createProject(projectTitle);
           break;
