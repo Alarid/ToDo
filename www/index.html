@@ -45,7 +45,7 @@
             </ion-header-bar>
             <ion-content scroll="false">
                 <ion-list>
-                    <ion-item ng-repeat="project in projects" ng-click="selectProject(project, $index)" ng-class="{active: activeProject == project}" on-hold="onHold(project)">
+                    <ion-item ng-repeat="project in projects" ng-click="selectProject(project, $index)" ng-class="{active: activeProject == project}" on-hold="onHold(project, $index)">
                         {{project.title}}
                     </ion-item>
                 </ion-list>

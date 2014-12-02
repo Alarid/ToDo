@@ -8,6 +8,7 @@ angular.module('todo', ['ionic'])
 .factory('Projects', function() {
   return {
     all: function() {
+      // window.localStorage['projects'] = [];
       var projectString = window.localStorage['projects'];
       if (projectString) {
         return angular.fromJson(projectString);
@@ -51,11 +52,17 @@ angular.module('todo', ['ionic'])
     Projects.save($scope.projects);
   }
 
-  // Load or initialize projects
-  $scope.projects = Projects.all();
-
-  // Grab the last active or the first project
-  $scope.activeProject = $scope.projects[Projects.getLastActiveIndex()];
+  // Delete project
+  var deleteProject = function(project, projectIndex) {
+    if (confirm("Veux tu vraiment supprimer " + project.title + " ?")) {
+      $scope.projects.splice(projectIndex, 1);
+      Projects.save($scope.projects);
+      if ($scope.projects.length == 0)
+        noProjectsFound();
+      else
+        $scope.selectProject($scope.projects[0]);
+    }
+  }
 
   // called to create a new project
   $scope.newProject = function() {
@@ -71,6 +78,12 @@ angular.module('todo', ['ionic'])
     Projects.setLastActiveIndex(index);
     $ionicSideMenuDelegate.toggleLeft(false);
   }
+
+  // Load or initialize projects
+  $scope.projects = Projects.all();
+
+  // Grab the last active or the first project
+  $scope.activeProject = $scope.projects[Projects.getLastActiveIndex()];
 
   // Create and load the Modal
   $ionicModal.fromTemplateUrl('new-task.html', function(modal) {
@@ -109,7 +122,7 @@ angular.module('todo', ['ionic'])
   };
 
   // Long press project menu
-  $scope.onHold = function(project) {
+  $scope.onHold = function(project, projectIndex) {
     var hideSheet = $ionicActionSheet.show({
       buttons: [
         { text: 'Modifier' },
@@ -119,29 +132,34 @@ angular.module('todo', ['ionic'])
       buttonClicked: function(index) {
         // Edit
         if (index == 0) {
-          var projectTitle = prompt('Nouveau nom du projet :');
+          var projectTitle = prompt('Nouveau nom du projet :', project.title);
           if (projectTitle) {
             editProject(project, projectTitle);
           }
         }
         else if (index == 1) {
-          // TODO
+          deleteProject(project, projectIndex);
         }
         return true;
       }
     });
   };
 
-  $timeout(function() {
-    if ($scope.projects.length == 0) {
-      while(true) {
-        var projectTitle = prompt('Bienvenue ! Choisissez un nom pour votre premier projet :');
-        if (projectTitle) {
-          createProject(projectTitle);
-          break;
-        }
+  // Check if there is still one project
+  // If not, ask for a name to create one
+  var noProjectsFound = function() {
+    while(true) {
+      var projectTitle = prompt('Bienvenue ! Choisi un nom pour ton premier projet :');
+      if (projectTitle) {
+        createProject(projectTitle);
+        break;
       }
     }
+  }
+
+  $timeout(function() {
+    if ($scope.projects.length == 0)
+      noProjectsFound();
   });
 
 });
