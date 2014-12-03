@@ -161,11 +161,11 @@ angular.module('todo', ['ionic'])
   /*    TASKS                                                                                  */
   /************************************************************************************************/
   // Called when the form is submitted
-  $scope.createTask = function(task) {
-    if (!$scope.activeProject || !task)
-      return;
+  $scope.createTask = function(task, project) {
+    if (!task) return;
+    if (!project) project = $scope.activeProject;
 
-    $scope.activeProject.tasks.push({
+    project.tasks.push({
       title: task.title,
       done: false
     });
@@ -189,15 +189,15 @@ angular.module('todo', ['ionic'])
   $scope.onClickTask = function(task, taskIndex, project) {
     var hideSheet = $ionicActionSheet.show({
       buttons: [
-        { text: "<b>C'est bon, c'est fait !</b>" },
-        { text: 'Modifier' },
-        { text: 'Supprimer' }
+        { text: "Marquer comme " + (task.done ? "à faire" : "effectuée") },
+        { text: 'Modifier' }
       ],
-      titleText: 'Que veux tu faire de ' + task.title + ' ?',
+      destructiveText: 'Supprimer',
+      titleText: 'Que veux tu faire de la tâche "' + task.title + '" ?',
       buttonClicked: function(index) {
         // Task completed
         if (index == 0) {
-          task.done = true;
+          task.done = !task.done;
           Projects.save($scope.projects);
         }
         // Edit task
@@ -208,12 +208,12 @@ angular.module('todo', ['ionic'])
             Projects.save($scope.projects);
           }
         }
-        // Delete task
-        else if (index == 2) {
-          if (confirm("Veux tu vraiment supprimer cette tâche sans l'avoir accomplie ?"))
+        return true;
+      },
+      destructiveButtonClicked: function() {
+        if (confirm("Veux tu vraiment supprimer cette tâche sans l'avoir accomplie ?"))
             project.tasks.splice(taskIndex, 1);
-            Projects.save($scope.projects);
-        }
+        Projects.save($scope.projects);
         return true;
       }
     });

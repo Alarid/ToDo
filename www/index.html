@@ -30,7 +30,7 @@
                 <h1 class="title" ng-if="!activeProject">Tous les projets</h1>
                 
                 <!-- Header buttons -->
-                <div class="buttons" ng-if="activeProject">
+                <div class="buttons" >
                     <!-- Delete completed tasks button -->
                     <button class="button button-icon" ng-click="deleteCompletedTasks()">
                         <i class="icon ion-trash-b"></i>
@@ -112,18 +112,23 @@
 
             <!-- Modal content area -->
             <ion-content>
-
-              <form ng-submit="createTask(task)">
-                <div class="list">
-                  <label class="item item-input">
-                    <input type="text" placeholder="Que dois tu faire?" ng-model="task.title">
-                  </label>
-                </div>
-                <div class="padding">
-                  <button type="submit" class="button button-block button-positive">Créer la tâche</button>
-                </div>
-              </form>
-
+                <form ng-submit="createTask(task, project)">
+                    <div class="list">
+                        <label class="item item-input item-select" ng-if="!activeProject">
+                            <div class="input-label">Projet</div>
+                            <select ng-model="project.title" ng-options="p.title for p in projects">
+                                <option value="">(blank)</option>
+                            </select>
+                        </label>
+                        <label class="item item-input">
+                            <div class="input-label">Nom de la tâche</div>
+                            <input type="text" placeholder="Que dois tu faire?" ng-model="task.title">
+                        </label>
+                    </div>
+                    <div class="padding">
+                      <button type="submit" class="button button-block button-positive">Créer la tâche</button>
+                    </div>
+                </form>
             </ion-content>
         </div>
     </script>
