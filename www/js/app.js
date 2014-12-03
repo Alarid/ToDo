@@ -34,6 +34,26 @@ angular.module('todo', ['ionic'])
 })
 
 .controller('TodoCtrl', function($scope, $timeout, $ionicModal, $ionicSideMenuDelegate, $ionicActionSheet, Projects) {
+  // View mode to see all the projects
+  $scope.allProjectViewMode = false;
+
+  // Load or initialize projects
+  $scope.projects = Projects.all();
+
+  // Grab the last active or the first project
+  $scope.activeProject = null;
+
+  // Create and load the Modal for the new task
+  $ionicModal.fromTemplateUrl('new-task.html', function(modal) {
+    $scope.taskModal = modal;
+  }, {
+    scope: $scope,
+    animation: 'slide-in-up'
+  });
+
+  /************************************************************************************************/
+  /*    PROJECTS                                                                                  */
+  /************************************************************************************************/
   // Create project
   var createProject = function(projectTitle) {
     var newProject = Projects.newProject(projectTitle);
@@ -77,58 +97,30 @@ angular.module('todo', ['ionic'])
     $scope.activeProject = project;
     Projects.setLastActiveIndex(index);
     $ionicSideMenuDelegate.toggleLeft(false);
+    $scope.allProjectViewMode = false;
   }
 
-  // Load or initialize projects
-  $scope.projects = Projects.all();
-
-  // Grab the last active or the first project
-  $scope.activeProject = $scope.projects[Projects.getLastActiveIndex()];
-
-  // Create and load the Modal
-  $ionicModal.fromTemplateUrl('new-task.html', function(modal) {
-    $scope.taskModal = modal;
-  }, {
-    scope: $scope,
-    animation: 'slide-in-up'
-  });
-
-  // Called when the form is submitted
-  $scope.createTask = function(task) {
-    if (!$scope.activeProject || !task)
-      return;
-
-    $scope.activeProject.tasks.push({
-      title: task.title
-    });
-    $scope.taskModal.hide();
-
-    Projects.save($scope.projects);
-    task.title = "";
-  };
-
-  // Open our new task modal
-  $scope.newTask = function() {
-    $scope.taskModal.show();
-  };
-
-  // Close the new task modal
-  $scope.closeNewTask = function() {
-    $scope.taskModal.hide();
-  };
-
+  // Select the view mode "all projects"
+  $scope.selectAllProjects = function() {
+    $ionicSideMenuDelegate.toggleLeft(false);
+    $scope.allProjectViewMode = true;
+    Projects.setLastActiveIndex(-1); // special index for this view mode
+    $scope.activeProject = null;
+  }
+  
+  // Toggle project left menu
   $scope.toggleProjects = function() {
     $ionicSideMenuDelegate.toggleLeft();
   };
 
   // Long press project menu
-  $scope.onHold = function(project, projectIndex) {
+  $scope.onHoldProject = function(project, projectIndex) {
     var hideSheet = $ionicActionSheet.show({
       buttons: [
         { text: 'Modifier' },
         { text: 'Supprimer' }
       ],
-      titleText: 'Que voulez vous faire de ' + project.title + ' ?',
+      titleText: 'Que veux tu faire de ' + project.title + ' ?',
       buttonClicked: function(index) {
         // Edit
         if (index == 0) {
@@ -157,9 +149,88 @@ angular.module('todo', ['ionic'])
     }
   }
 
+  // First time opening the app
   $timeout(function() {
     if ($scope.projects.length == 0)
       noProjectsFound();
   });
 
+
+  /************************************************************************************************/
+  /*    TASKS                                                                                  */
+  /************************************************************************************************/
+  // Called when the form is submitted
+  $scope.createTask = function(task) {
+    if (!$scope.activeProject || !task)
+      return;
+
+    $scope.activeProject.tasks.push({
+      title: task.title,
+      done: false
+    });
+    $scope.taskModal.hide();
+
+    Projects.save($scope.projects);
+    task.title = "";
+  };
+
+  // Open our new task modal
+  $scope.newTask = function() {
+    $scope.taskModal.show();
+  };
+
+  // Close the new task modal
+  $scope.closeNewTask = function() {
+    $scope.taskModal.hide();
+  };
+
+  // Long press task
+  $scope.onClickTask = function(task, taskIndex, project) {
+    var hideSheet = $ionicActionSheet.show({
+      buttons: [
+        { text: "<b>C'est bon, c'est fait !</b>" },
+        { text: 'Modifier' },
+        { text: 'Supprimer' }
+      ],
+      titleText: 'Que veux tu faire de ' + task.title + ' ?',
+      buttonClicked: function(index) {
+        // Task completed
+        if (index == 0) {
+          task.done = true;
+          Projects.save($scope.projects);
+        }
+        // Edit task
+        else if (index == 1) {
+          var taskTitle = prompt('Nouveau nom de tâche :', task.title);
+          if (taskTitle) {
+            task.title = taskTitle;
+            Projects.save($scope.projects);
+          }
+        }
+        // Delete task
+        else if (index == 2) {
+          if (confirm("Veux tu vraiment supprimer cette tâche sans l'avoir accomplie ?"))
+            project.tasks.splice(taskIndex, 1);
+            Projects.save($scope.projects);
+        }
+        return true;
+      }
+    });
+  }
+
+  // Delete completed tasks
+  $scope.deleteCompletedTasks = function() {
+    if (confirm("Veux tu vraiment supprimer les tâches complétées ?")) {
+      var indexesToRemove = [];
+      for (var i=0, len=$scope.activeProject.tasks.length; i<len; i+=1) {
+        if ($scope.activeProject.tasks[i].done) {
+          indexesToRemove.push(i);
+        }
+      }
+      for (var i=indexesToRemove.length-1; i>=0; i--) {
+        $scope.activeProject.tasks.splice(indexesToRemove[i],1);
+      }
+      Projects.save($scope.projects);
+    }
+  }
 });

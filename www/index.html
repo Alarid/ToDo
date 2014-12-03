@@ -18,23 +18,71 @@
         {% raw %}
         <!-- Center content -->
         <ion-side-menu-content>
+            <!-- Header -->
             <ion-header-bar class="bar-dark">
+                <!-- Button to display the left panel -->
                 <button class="button button-icon" ng-click="toggleProjects()">
                     <i class="icon ion-navicon"></i>
                 </button>
-                <h1 class="title">{{activeProject.title}}</h1>
-                <!-- New task button -->
-                <button class="button button-icon" ng-click="newTask()">
-                    <i class="icon ion-compose"></i>
-                </button>
+
+                <!-- Header title -->
+                <h1 class="title" ng-if="activeProject">{{activeProject.title}}</h1>
+                <h1 class="title" ng-if="!activeProject">Tous les projets</h1>
+                
+                <!-- Header buttons -->
+                <div class="buttons" ng-if="activeProject">
+                    <!-- Delete completed tasks button -->
+                    <button class="button button-icon" ng-click="deleteCompletedTasks()">
+                        <i class="icon ion-trash-b"></i>
+                    </button>
+                    <!-- New task button -->
+                    <button class="button button-icon" ng-click="newTask()">
+                        <i class="icon ion-compose"></i>
+                    </button>
+                </div>
             </ion-header-bar>
+
+            <!-- Content -->
             <ion-content scroll="false">
-                <ion-list>
-                    <ion-item ng-repeat="task in activeProject.tasks">
-                        {{task.title}}
+                <!-- Project tasks -->
+                <ion-list ng-if="activeProject">
+                    <ion-item ng-show="!activeProject.tasks.length">Pas de tâches pour le moment !</ion-item>
+                    <ion-item ng-repeat="task in activeProject.tasks" ng-click="onClickTask(task, $index, activeProject)">
+                        <div ng-switch on="task.done">
+                            <div ng-switch-when="true">
+                                <s ng-if="task.done">{{task.title}}</s>
+                            </div>
+                            <div ng-switch-default>
+                                {{task.title}}
+                            </div>
+                        </div>
                     </ion-item>
                 </ion-list>
+
+                <!-- All tasks -->
+                <ion-list ng-if="!activeProject">
+                    <div ng-repeat="project in projects">
+                        <ion-item class="item-divider" ng-click="selectProject(project, $index)">
+                            {{project.title}}
+                        </ion-item>
+                        <ion-item ng-repeat="task in project.tasks" ng-click="onClickTask(task, $index, project)">
+                            <div ng-switch on="task.done">
+                                <div ng-switch-when="true">
+                                    <s ng-if="task.done">{{task.title}}</s>
+                                </div>
+                                <div ng-switch-default>
+                                    {{task.title}}
+                                </div>
+                            </div>
+                        </ion-item>
+                    </div>
+                </ion-list>
             </ion-content>
+            <!--<ion-footer-bar class="bar-dark">
+                <button class="button button-icon" ng-click="">
+                    <i class="icon ion-trash-b"></i> Supprimer les tâches effectuées
+                </button>
+            </ion-footer-bar>-->
         </ion-side-menu-content>
 
         <!-- Left menu -->
@@ -45,7 +93,8 @@
             </ion-header-bar>
             <ion-content scroll="false">
                 <ion-list>
-                    <ion-item ng-repeat="project in projects" ng-click="selectProject(project, $index)" ng-class="{active: activeProject == project}" on-hold="onHold(project, $index)">
+                    <ion-item ng-click="selectAllProjects()" ng-class="{active: !activeProject}">Tous les projets</ion-item>
+                    <ion-item ng-repeat="project in projects" ng-click="selectProject(project, $index)" ng-class="{active: activeProject == project}" on-hold="onHoldProject(project, $index)">
                         {{project.title}}
                     </ion-item>
                 </ion-list>
