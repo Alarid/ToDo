@@ -48,7 +48,8 @@ angular.module('todo', ['ionic'])
     $scope.taskModal = modal;
   }, {
     scope: $scope,
-    animation: 'slide-in-up'
+    animation: 'slide-in-up',
+    focusFirstInput: true
   });
 
   /************************************************************************************************/
