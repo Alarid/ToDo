@@ -112,14 +112,15 @@
 
             <!-- Modal content area -->
             <ion-content>
-                <form ng-submit="createTask(task, project)">
+                <form ng-submit="createTask(task,project)">
                     <div class="list">
-                        <label class="item item-input item-select" ng-if="!activeProject">
-                            <div class="input-label">Projet</div>
-                            <select ng-model="project.title" ng-options="p.title for p in projects">
-                                <option value="">(blank)</option>
-                            </select>
-                        </label>
+                        <div ng-show="!activeProject">
+                            <label class="item item-input item-select">
+                                <div class="input-label">Projet</div>
+                                <select ng-model="project" id="projectList" ng-options="p as p.title for p in projects">
+                                </select>
+                            </label>
+                        </div>
                         <label class="item item-input">
                             <div class="input-label">Nom de la tâche</div>
                             <input type="text" placeholder="Que dois tu faire?" ng-model="task.title">

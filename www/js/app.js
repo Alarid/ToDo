@@ -39,6 +39,7 @@ angular.module('todo', ['ionic'])
 
   // Load or initialize projects
   $scope.projects = Projects.all();
+  $scope.project = $scope.projects[0];
 
   // Grab the last active or the first project
   $scope.activeProject = null;
@@ -173,6 +174,10 @@ angular.module('todo', ['ionic'])
 
     Projects.save($scope.projects);
     task.title = "";
+    $scope.project = $scope.projects[0];
+
+    var select = angular.element(document.querySelector("#projectList"))[0];
+    select[0].selected = true;
   };
 
   // Open our new task modal
